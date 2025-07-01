@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube Video Downloader</title>
+    <title>YouTube Video Downloader - MP4</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -199,6 +199,7 @@
             justify-content: center;
             gap: 15px;
             margin-top: 20px;
+            flex-wrap: wrap;
         }
 
         .download-link {
@@ -219,6 +220,33 @@
             background: #e60000;
             transform: translateY(-3px);
             box-shadow: 0 6px 15px rgba(255, 0, 0, 0.4);
+        }
+
+        .quality-options {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .quality-btn {
+            background: #f0f0f0;
+            border: none;
+            border-radius: 20px;
+            padding: 8px 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quality-btn.active {
+            background: #ff0000;
+            color: white;
+        }
+
+        .quality-btn:hover:not(.active) {
+            background: #e0e0e0;
         }
 
         .loader {
@@ -253,6 +281,18 @@
             text-align: center;
             font-weight: 500;
             border-left: 4px solid #d32f2f;
+        }
+
+        .info-message {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            text-align: center;
+            font-weight: 500;
+            border-left: 4px solid #1976d2;
+            display: none;
         }
 
         .footer {
@@ -301,6 +341,11 @@
             .thumbnail {
                 flex: 0 0 auto;
             }
+            
+            .download-link {
+                padding: 12px 20px;
+                font-size: 0.9rem;
+            }
         }
     </style>
 </head>
@@ -326,6 +371,10 @@
                         <p><span>https://www.youtube.com/watch?v=dQw4w9WgXcQ</span></p>
                         <p><span>https://youtu.be/dQw4w9WgXcQ</span></p>
                     </div>
+                    
+                    <div class="info-message" id="info-message">
+                        <i class="fas fa-info-circle"></i> Jika terjadi masalah, gunakan pilihan kualitas alternatif
+                    </div>
                 </div>
                 
                 <div class="loader" id="loader">
@@ -348,23 +397,28 @@
                         <div class="video-info">
                             <h3 id="video-title">HUIAN: LARI VS JALAN?</h3>
                             <p><strong>Durasi:</strong> <span id="video-duration">3:32</span></p>
-                            <p><strong>Kualitas:</strong> <span id="video-quality">MP4 (720p)</span></p>
                             <p><strong>Ukuran:</strong> <span id="video-size">12.5 MB</span></p>
                             <p><strong>Channel:</strong> <span id="video-channel">Huian Channel</span></p>
                         </div>
                     </div>
                     
+                    <div class="quality-options" id="quality-options">
+                        <button class="quality-btn active" data-quality="720p">720p (HD)</button>
+                        <button class="quality-btn" data-quality="480p">480p</button>
+                        <button class="quality-btn" data-quality="360p">360p</button>
+                    </div>
+                    
                     <div class="download-options">
-                        <a href="https://kyami-rest-api.vercel.app/download/ytmp4?url=https://www.youtube.com/watch?v=dQw4w9WgXcQ" id="download-link" class="download-link">
-                            <i class="fas fa-download"></i> Download Video
+                        <a href="#" id="download-link" class="download-link">
+                            <i class="fas fa-download"></i> Download Video (720p)
                         </a>
                     </div>
                 </div>
             </div>
             
             <div class="footer">
-                <p>YouTube Video Downloader &copy; 2023 - All Rights Reserved</p>
-                <p class="api-info">Menggunakan API: https://kyami-rest-api.vercel.app/download/ytmp4</p>
+                <p>YouTube Video Downloader &copy; 2023 - All YawwOffc ✓</p>
+                <p class="api-info">Menggunakan API alternatif untuk kualitas video MP4</p>
             </div>
         </div>
     </div>
@@ -375,22 +429,26 @@
             const downloadBtn = document.getElementById('download-btn');
             const loader = document.getElementById('loader');
             const errorMessage = document.getElementById('error-message');
+            const infoMessage = document.getElementById('info-message');
             const resultSection = document.getElementById('result-section');
             const videoThumbnail = document.getElementById('video-thumbnail');
             const videoTitle = document.getElementById('video-title');
             const videoDuration = document.getElementById('video-duration');
             const videoSize = document.getElementById('video-size');
             const videoChannel = document.getElementById('video-channel');
-            const videoQuality = document.getElementById('video-quality');
             const downloadLink = document.getElementById('download-link');
+            const qualityOptions = document.getElementById('quality-options');
+            
+            let currentVideoId = 'dQw4w9WgXcQ';
+            let currentUrl = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
+            let currentQuality = '720p';
             
             // Tampilkan hasil secara default untuk demo
             resultSection.style.display = 'block';
             
             // Fungsi untuk mengatasi masalah CORS
             async function fetchWithCorsProxy(url) {
-                // Menggunakan proxy CORS untuk mengatasi masalah CORS
-                const proxyUrl = 'https://corsproxy.io/?';
+                const proxyUrl = 'https://api.codetabs.com/v1/proxy?quest=';
                 try {
                     const response = await fetch(proxyUrl + encodeURIComponent(url));
                     if (!response.ok) {
@@ -399,17 +457,7 @@
                     return await response.json();
                 } catch (error) {
                     console.error('Error with proxy:', error);
-                    // Jika proxy pertama gagal, coba proxy alternatif
-                    const altProxyUrl = 'https://api.allorigins.win/raw?url=';
-                    try {
-                        const altResponse = await fetch(altProxyUrl + encodeURIComponent(url));
-                        if (!altResponse.ok) {
-                            throw new Error(`HTTP error! status: ${altResponse.status}`);
-                        }
-                        return await altResponse.json();
-                    } catch (altError) {
-                        throw new Error(`Both proxies failed: ${altError.message}`);
-                    }
+                    throw error;
                 }
             }
             
@@ -425,8 +473,21 @@
                 return /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$/.test(url);
             }
             
+            // Fungsi untuk mendapatkan URL download MP4 berdasarkan kualitas
+            function getMP4DownloadUrl(videoId, quality) {
+                // Menggunakan API alternatif yang menyediakan MP4
+                const apiEndpoints = {
+                    '720p': `https://yt5s.io/en?q=${videoId}`,
+                    '480p': `https://yt5s.io/en?q=${videoId}&quality=480`,
+                    '360p': `https://yt5s.io/en?q=${videoId}&quality=360`
+                };
+                
+                return apiEndpoints[quality] || apiEndpoints['720p'];
+            }
+            
             // Format durasi dalam menit:detik
             function formatDuration(seconds) {
+                if (!seconds) return "-";
                 const mins = Math.floor(seconds / 60);
                 const secs = Math.floor(seconds % 60);
                 return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
@@ -434,10 +495,37 @@
             
             // Format ukuran file
             function formatFileSize(bytes) {
+                if (!bytes) return "-";
                 if (bytes < 1024) return bytes + ' bytes';
                 else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
                 else return (bytes / 1048576).toFixed(1) + ' MB';
             }
+            
+            // Update tombol download berdasarkan kualitas
+            function updateDownloadLink() {
+                const downloadUrl = getMP4DownloadUrl(currentVideoId, currentQuality);
+                downloadLink.href = downloadUrl;
+                downloadLink.innerHTML = `<i class="fas fa-download"></i> Download Video (${currentQuality})`;
+            }
+            
+            // Event listener untuk tombol kualitas
+            qualityOptions.addEventListener('click', function(e) {
+                if (e.target.classList.contains('quality-btn')) {
+                    // Hapus kelas active dari semua tombol
+                    document.querySelectorAll('.quality-btn').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    
+                    // Tambahkan kelas active ke tombol yang diklik
+                    e.target.classList.add('active');
+                    
+                    // Perbarui kualitas
+                    currentQuality = e.target.dataset.quality;
+                    
+                    // Perbarui tautan download
+                    updateDownloadLink();
+                }
+            });
             
             downloadBtn.addEventListener('click', function() {
                 const youtubeUrl = urlInput.value.trim();
@@ -451,74 +539,60 @@
                 // Tampilkan loader
                 loader.style.display = 'block';
                 errorMessage.style.display = 'none';
+                infoMessage.style.display = 'none';
                 resultSection.style.display = 'none';
                 
-                // Dapatkan ID video untuk thumbnail
+                // Dapatkan ID video
                 const videoId = getYouTubeVideoId(youtubeUrl);
-                if (videoId) {
-                    videoThumbnail.src = `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`;
-                    videoThumbnail.onerror = function() {
-                        this.src = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
-                    };
+                if (!videoId) {
+                    showError("Tidak dapat menemukan ID video YouTube");
+                    return;
                 }
                 
-                // Konstruksi URL API
-                const apiUrl = `https://kyami-rest-api.vercel.app/download/ytmp4?url=${encodeURIComponent(youtubeUrl)}`;
+                currentVideoId = videoId;
+                currentUrl = youtubeUrl;
                 
-                // Panggil API dengan solusi CORS
-                fetchWithCorsProxy(apiUrl)
-                    .then(data => {
-                        // Sembunyikan loader
-                        loader.style.display = 'none';
-                        
-                        // Periksa respons API
-                        if (data && data.status === true) {
-                            displayResults(data.result, youtubeUrl);
-                        } else {
-                            // Jika API gagal, gunakan fallback langsung ke URL download
-                            displayFallback(youtubeUrl);
-                        }
-                    })
-                    .catch(error => {
-                        loader.style.display = 'none';
-                        // Jika ada error, gunakan fallback langsung ke URL download
-                        displayFallback(youtubeUrl);
-                    });
+                // Setel thumbnail
+                videoThumbnail.src = `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`;
+                videoThumbnail.onerror = function() {
+                    this.src = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+                };
+                
+                // Coba mendapatkan metadata video
+                try {
+                    // Gunakan API alternatif untuk metadata
+                    fetchWithCorsProxy(`https://noembed.com/embed?url=${encodeURIComponent(youtubeUrl)}`)
+                        .then(metadata => {
+                            if (metadata && metadata.title) {
+                                videoTitle.textContent = metadata.title;
+                            }
+                            
+                            if (metadata && metadata.author_name) {
+                                videoChannel.textContent = metadata.author_name;
+                            }
+                            
+                            // Tampilkan hasil
+                            loader.style.display = 'none';
+                            resultSection.style.display = 'block';
+                            
+                            // Perbarui tautan download
+                            updateDownloadLink();
+                        })
+                        .catch(error => {
+                            // Jika gagal, tetap tampilkan tombol download
+                            loader.style.display = 'none';
+                            resultSection.style.display = 'block';
+                            infoMessage.style.display = 'block';
+                            updateDownloadLink();
+                        });
+                } catch (e) {
+                    // Jika gagal, tetap tampilkan tombol download
+                    loader.style.display = 'none';
+                    resultSection.style.display = 'block';
+                    infoMessage.style.display = 'block';
+                    updateDownloadLink();
+                }
             });
-            
-            // Tampilkan hasil dengan data dari API
-            function displayResults(videoData, youtubeUrl) {
-                videoTitle.textContent = videoData.title || "Judul tidak tersedia";
-                videoDuration.textContent = videoData.duration ? formatDuration(videoData.duration) : "-";
-                videoSize.textContent = videoData.size || "-";
-                videoChannel.textContent = videoData.channel || "-";
-                
-                // Setel tautan download
-                if (videoData.url) {
-                    downloadLink.href = videoData.url;
-                    downloadLink.style.display = 'flex';
-                } else {
-                    // Jika tidak ada URL dari API, buat URL langsung
-                    downloadLink.href = `https://kyami-rest-api.vercel.app/download/ytmp4?url=${encodeURIComponent(youtubeUrl)}`;
-                    downloadLink.style.display = 'flex';
-                }
-                
-                resultSection.style.display = 'block';
-            }
-            
-            // Fallback jika API tidak merespons dengan benar
-            function displayFallback(youtubeUrl) {
-                videoTitle.textContent = "Video YouTube";
-                videoDuration.textContent = "-";
-                videoSize.textContent = "-";
-                videoChannel.textContent = "-";
-                
-                // Buat URL download langsung
-                downloadLink.href = `https://kyami-rest-api.vercel.app/download/ytmp4?url=${encodeURIComponent(youtubeUrl)}`;
-                downloadLink.style.display = 'flex';
-                
-                resultSection.style.display = 'block';
-            }
             
             // Tampilkan pesan error
             function showError(message) {
@@ -528,11 +602,8 @@
                 resultSection.style.display = 'none';
             }
             
-            // Animasi untuk input saat halaman dimuat
-            setTimeout(() => {
-                urlInput.focus();
-                urlInput.placeholder = "Salin URL YouTube di sini...";
-            }, 500);
+            // Inisialisasi tautan download
+            updateDownloadLink();
         });
     </script>
 </body>
