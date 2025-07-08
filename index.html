@@ -1,0 +1,45 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>YouTube Downloader</title>
+  <style>
+    body { font-family: Arial; padding: 20px; background: #f9f9f9; }
+    input, select, button { padding: 10px; margin: 5px; }
+  </style>
+</head>
+<body>
+  <h2>YouTube Downloader 🎥🎵</h2>
+  <input type="text" id="url" placeholder="Masukkan link YouTube">
+  <select id="type">
+    <option value="mp3">MP3 (Audio)</option>
+    <option value="mp4">MP4 (Video)</option>
+  </select>
+  <button onclick="download()">Download</button>
+
+  <div id="result" style="margin-top:20px;"></div>
+
+  <script>
+    async function download() {
+      const url = document.getElementById("url").value;
+      const type = document.getElementById("type").value;
+      const resDiv = document.getElementById("result");
+      resDiv.innerHTML = "⏳ Memproses...";
+
+      try {
+        const res = await fetch(`/api/youtube?url=${encodeURIComponent(url)}&type=${type}`);
+        const data = await res.json();
+        if (data.status) {
+          const link = data.result.url || data.result.audio || data.result.video || '#';
+          resDiv.innerHTML = \`✅ <a href="\${link}" target="_blank">Klik di sini untuk download \${type.toUpperCase()}</a>\`;
+        } else {
+          resDiv.innerHTML = "❌ Gagal: " + data.message;
+        }
+      } catch (err) {
+        resDiv.innerHTML = "⚠️ Error: " + err.message;
+      }
+    }
+  </script>
+</body>
+</html>
