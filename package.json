@@ -1,0 +1,7 @@
+{
+  "name": "youtube-downloader-flat",
+  "version": "1.0.0",
+  "dependencies": {
+    "@vreden/youtube_scraper": "^1.0.0"
+  }
+}

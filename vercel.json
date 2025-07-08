@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "builds": [
+    { "src": "youtube.js", "use": "@vercel/node" }
+  ],
+  "routes": [
+    { "src": "/api/youtube", "dest": "youtube.js" },
+    { "src": "/", "dest": "index.html" },
+    { "src": "/(.*)", "dest": "/$1" }
+  ]
+}
