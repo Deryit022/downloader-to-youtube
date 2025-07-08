@@ -28,7 +28,7 @@
       resDiv.innerHTML = "⏳ Memproses...";
 
       try {
-        const res = await fetch(`/api/youtube?url=${encodeURIComponent(url)}&type=${type}`);
+        const res = await fetch(`./api/youtube?url=${encodeURIComponent(url)}&type=${type}`);
         const data = await res.json();
         if (data.status) {
           const link = data.result.url || data.result.audio || data.result.video || '#';
