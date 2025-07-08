@@ -1,0 +1,9 @@
+
+{
+  "name": "youtube-downloader-vercel",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "@vreden/youtube_scraper": "^1.0.0"
+  }
+}
